@@ -79,7 +79,7 @@ flowchart LR
         ER3 --> ER4[Slack Error Alert]
     end
 
-    Intelligent Lead Classification
+Intelligent Lead Classification
 
 Based on:
 budget, company size, urgency, email domain, consent flags, UTM parameters
