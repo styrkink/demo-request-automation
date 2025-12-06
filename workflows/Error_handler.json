@@ -1,0 +1,289 @@
+{
+  "name": "Error_handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "39173801-657a-4d3f-81f1-f70cc053aa54",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Базовые объекты из Error Trigger\nconst exec = $json.execution || {};\nconst wf   = $json.workflow  || {};\nconst err  = $json.error     || {};\n\n// 2. Пытаемся вытащить хоть какой-то контекст\n// Сейчас оставляем null — потом можно будет донастроить вытаскивание email/lead.\nlet email          = null;\nlet company        = null;\nlet priority       = null;\nlet classification = null;\nlet source         = null;\nlet budget         = null;\nlet urgency        = null;\nlet use_case       = null;\nlet contact_id     = null;\nlet deal_id        = null;\n\n// 3. Собираем человекочитаемое сообщение об ошибке\nconst workflowName = wf.name || 'unknown workflow';\nconst lastNode     = exec.lastNodeExecuted || 'unknown node';\nconst baseMessage  = err.message || 'Unknown error';\n\nconst error_message = `[${workflowName}] node \"${lastNode}\": ${baseMessage}`;\n\n// 4. Собираем лог для таблицы\nconst log = {\n  email,\n  company,\n  priority,\n  classification,\n  source,\n  budget,\n  urgency,\n  use_case,\n\n  contact_id,\n  deal_id,\n\n  step: 'error',\n  status: 'error',\n  error_message,\n  raw_execution: exec.id || null,\n\n  // Метаданные для Slack / дебага\n  meta: {\n    workflow_id: wf.id || null,\n    workflow_name: workflowName,\n    last_node: lastNode,\n    execution_id: exec.id || null,\n    execution_url: exec.url || null,\n  },\n};\n\nreturn [{ json: log }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "647146ee-61a7-4556-8458-5fbe20b41423",
+      "name": "Prepare error log"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "g9yJxHEUaqpFQbaL",
+          "mode": "list",
+          "cachedResultName": "Leads_log",
+          "cachedResultUrl": "/projects/rsC3PyfnBHx7Wedi/datatables/g9yJxHEUaqpFQbaL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email}}",
+            "budget": "={{$json.budget}}",
+            "contact_id": "={{ $json.contact_id }}",
+            "company": "={{ $json.company }}",
+            "priority": "={{ $json.priority }}",
+            "classification": "={{ $json.classification }}",
+            "source": "={{ $json.source }}",
+            "urgency": "={{ $json.urgency }}",
+            "step": "={{ $json.step }}",
+            "status": "={{ $json.status }}",
+            "deal_id": "={{ $json.deal_id }}",
+            "error_message": "={{ $json.error_message }}",
+            "raw_execution": "={{ $json.raw_execution }}",
+            "use_case": "={{ $json.use_case }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "classification",
+              "displayName": "classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact_id",
+              "displayName": "contact_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "deal_id",
+              "displayName": "deal_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_execution",
+              "displayName": "raw_execution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "use_case",
+              "displayName": "use_case",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ],
+      "id": "d7470922-ad01-42ef-89c5-0059f99e88a9",
+      "name": "Insert log"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0A0Y8UA79R",
+          "mode": "list",
+          "cachedResultName": "automation_alerts"
+        },
+        "text": "=❗ n8n error alert  Workflow: {{$json.meta.workflow_name}} (ID: {{$json.meta.workflow_id}}) Execution: {{$json.meta.execution_id}}  Last node: {{$json.meta.last_node}} Error: {{$json.error_message}}  {{$json.meta.execution_url ? 'Open execution: ' + $json.meta.execution_url : ''}}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        0
+      ],
+      "id": "5d73a245-93e5-4818-8778-f5c5bde81535",
+      "name": "Send a message",
+      "webhookId": "56935085-c6bf-454e-bdd2-6230aee232ed",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "SpaR4L2WOjcgtFj9",
+          "name": "SlackAuth"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Prepare error log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare error log": {
+      "main": [
+        [
+          {
+            "node": "Insert log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert log": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7f9e3d5a-0e23-4c70-9117-0fc30373d28d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43ecdc1b526655813aa158d8f77ee0948c0e20b91a4fab5bcf34e0a430aaea59"
+  },
+  "id": "xAo32PXFpTTd5GPm",
+  "tags": []
+}

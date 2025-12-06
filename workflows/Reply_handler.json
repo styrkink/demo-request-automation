@@ -1,0 +1,558 @@
+{
+  "name": "Reply_handler",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "value": 30,
+              "unit": "minutes"
+            }
+          ]
+        },
+        "filters": {
+          "labelIds": [
+            "INBOX"
+          ],
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -512,
+        -80
+      ],
+      "id": "4c6b0d78-c2e5-429f-8f81-b05cc95d8228",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EW3eFnmaPa8tWJSJ",
+          "name": "GoogleAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "535052c8-a688-4ce8-9b8a-f516b2375b8c",
+              "name": "=fromEmail",
+              "value": "={{    ($json[\"From\"] || '').match(/<([^>]+)>/)?.[1]    || ($json[\"From\"] || '').replace(/\"/g, '')  }}",
+              "type": "string"
+            },
+            {
+              "id": "cb1f08dd-4216-4117-b520-b218aee26b9a",
+              "name": "=replyBody",
+              "value": "={{ $json.snippet || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "35b0189f-0063-4043-8698-12e60e1e6ba5",
+              "name": "subject",
+              "value": "={{ $json.Subject || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "a8b0929a-7022-460a-814f-6192f855a657",
+              "name": "threadId",
+              "value": "={{ $json.threadId || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        -80
+      ],
+      "id": "9239bc24-1a91-47ca-b8ea-09b02d994223",
+      "name": "Set : normalize reply"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "g9yJxHEUaqpFQbaL",
+          "mode": "list",
+          "cachedResultName": "Leads_log",
+          "cachedResultUrl": "/projects/rsC3PyfnBHx7Wedi/datatables/g9yJxHEUaqpFQbaL"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "email",
+              "keyValue": "={{ $json.fromEmail }}"
+            },
+            {
+              "keyName": "step",
+              "keyValue": "first_email"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "ok"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        -96,
+        -80
+      ],
+      "id": "b321e528-50bf-4cba-9dee-9e506cb40647",
+      "name": "Read log by email"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e629a281-eccf-4589-8480-e0e936c1621b",
+              "name": "clientReply",
+              "value": "={{ $node[\"Set : normalize reply\"].json.replyBody }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "2dba50c9-9bc7-4d6d-ade8-0cd41817808b",
+      "name": "Set : with reply"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ax4HIrZ9NgddO8Mx",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ax4HIrZ9NgddO8Mx",
+          "cachedResultName": "AI_Email_Service"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "mode": "=proposal",
+            "lead": "={{\n    {\n      email:    ($json.email || '').trim(),\n      company:  $json.company || null,\n      priority: $json.priority || null,\n      classification: $json.classification || null,\n      source:   $json.source || null,\n      budget:   $json.budget || null,\n      urgency:  $json.urgency || null,\n      use_case: $json.use_case || null\n    }\n  }}",
+            "contactVid": "={{ $json.contact_id }}",
+            "dealId": "={{ $json.deal_id }}",
+            "priority": "={{ $json.priority }}",
+            "clientReply": "={{ $json.clientReply }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "mode",
+              "displayName": "mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "lead",
+              "displayName": "lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "contactVid",
+              "displayName": "contactVid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "dealId",
+              "displayName": "dealId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "clientReply",
+              "displayName": "clientReply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        320,
+        -80
+      ],
+      "id": "ee1bd91f-dbdf-4be0-9b7e-9efb6f54e787",
+      "name": "Call 'AI_Email_Service'",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const LOG_NODE = 'Read log by email';\n\nlet base = {};\ntry {\n  const item = $items(LOG_NODE, 0, 0)[0];  // первый item первого запуска\n  base = (item && item.json) ? item.json : {};\n} catch (e) {\n  base = {};\n}\n\n// 2. step / status — приоритет у значений из Set : log proposal\nlet step = $json.step || base.step || 'proposal_sent';\nlet status = $json.status || base.status || 'ok';\n\n// 3. Ошибка (если нода вызвана из Error workflow)\nconst execErr = $execution.error;\nconst localErr = $json.error;\nconst hasError = !!(execErr || localErr);\n\nlet error_message = '';\n\nif (hasError) {\n  step = 'error';\n  status = 'error';\n  error_message =\n    (localErr && localErr.message) ||\n    (execErr && execErr.message) ||\n    (typeof execErr === 'string' ? execErr : '') ||\n    '';\n}\n\n// 4. Собираем финальный лог\nconst log = {\n  email:          base.email || null,\n  company:        base.company || null,\n  priority:       base.priority || null,\n  classification: base.classification || null,\n  source:         base.source || null,\n  budget:         base.budget || null,\n  urgency:        base.urgency || null,\n  use_case:       base.use_case || null,\n\n  contact_id: base.contact_id ?? base.contactId ?? null,\n  deal_id:    base.deal_id    ?? base.dealId    ?? null,\n\n  step,\n  status,\n  error_message,\n  raw_execution: $execution.id,\n};\n\nreturn [{ json: log }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -80
+      ],
+      "id": "2830af09-be45-47de-af5b-76c0a829adc1",
+      "name": "Prepare log"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "g9yJxHEUaqpFQbaL",
+          "mode": "list",
+          "cachedResultName": "Leads_log",
+          "cachedResultUrl": "/projects/rsC3PyfnBHx7Wedi/datatables/g9yJxHEUaqpFQbaL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "email": "={{$json.email}}",
+            "budget": "={{$json.budget}}",
+            "contact_id": "={{ $json.contact_id }}",
+            "company": "={{ $json.company }}",
+            "priority": "={{ $json.priority }}",
+            "classification": "={{ $json.classification }}",
+            "source": "={{ $json.source }}",
+            "urgency": "={{ $json.urgency }}",
+            "step": "={{ $json.step }}",
+            "status": "={{ $json.status }}",
+            "deal_id": "={{ $json.deal_id }}",
+            "error_message": "={{ $json.error_message }}",
+            "raw_execution": "={{ $json.raw_execution }}",
+            "use_case": "={{ $json.use_case }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "classification",
+              "displayName": "classification",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "urgency",
+              "displayName": "urgency",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "step",
+              "displayName": "step",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contact_id",
+              "displayName": "contact_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "deal_id",
+              "displayName": "deal_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "raw_execution",
+              "displayName": "raw_execution",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "use_case",
+              "displayName": "use_case",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        912,
+        -80
+      ],
+      "id": "2db15cc1-5529-4a60-aeff-e72435fddfd0",
+      "name": "Insert log"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7c856dc4-93c9-4795-bdeb-1b72c4590a48",
+              "name": "step",
+              "value": "proposal_sent",
+              "type": "string"
+            },
+            {
+              "id": "52dffe9a-368a-49d9-8b5b-5e18a251a9fe",
+              "name": "status",
+              "value": "ok",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        -80
+      ],
+      "id": "1312a4e7-5c38-4773-81ed-cb22d64e02eb",
+      "name": "Set : proposal sent"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set : normalize reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set : normalize reply": {
+      "main": [
+        [
+          {
+            "node": "Read log by email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read log by email": {
+      "main": [
+        [
+          {
+            "node": "Set : with reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set : with reply": {
+      "main": [
+        [
+          {
+            "node": "Call 'AI_Email_Service'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call 'AI_Email_Service'": {
+      "main": [
+        [
+          {
+            "node": "Set : proposal sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare log": {
+      "main": [
+        [
+          {
+            "node": "Insert log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set : proposal sent": {
+      "main": [
+        [
+          {
+            "node": "Prepare log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "xAo32PXFpTTd5GPm"
+  },
+  "versionId": "30b398f4-da8b-4a3b-a612-08b7be14e2e7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43ecdc1b526655813aa158d8f77ee0948c0e20b91a4fab5bcf34e0a430aaea59"
+  },
+  "id": "aFGN1hWaS9defPjU",
+  "tags": []
+}

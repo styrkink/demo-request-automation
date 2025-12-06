@@ -1,0 +1,266 @@
+{
+  "name": "AI_Email_Service",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You will generate an email for a client based on the following data and mode.\n\nLead data in JSON:\n{{ JSON.stringify($json.lead, null, 2) }}\n\nAdditional context:\n- mode: {{ $json.mode }}        // \"first_email\" or \"proposal\"\n- priority: {{ $json.priority }} // e.g. \"high\" or \"normal\"\n- latest_client_reply (may be empty): {{ $json.clientReply || 'N/A' }}\n\nYOUR TASK:\n\n1) If mode is \"first_email\":\n\n- Write the FIRST outreach email to this lead.\n- Language: English.\n- If the lead's name is present, address them by name.\n- Briefly restate what problem or goal the client seems to have based on the lead data.\n- Explain that we specialize in automation (n8n workflows, CRM setups, integrations, AI-based automation) and can help with their case.\n- Mention the expected response time (SLA) depending on priority:\n  - If priority = \"high\": clearly say that we will get back within 2 hours.\n  - If priority = \"normal\": clearly say that we will respond within 1 business day.\n- Ask 2–3 specific clarifying questions that will help us prepare for a call or make a more accurate estimate.\n- Do NOT include an email subject, only the body text.\n\n2) If mode is \"proposal\":\n\n- Assume that a first outreach email has already been sent earlier (it is stored in your memory), and now the client has replied.\n- Use:\n  - the lead data above,\n  - your conversation memory,\n  - and the latest_client_reply text\n  to understand the context.\n- Write a COMMERCIAL PROPOSAL email in English.\n- Start by acknowledging the client's reply and summarizing their needs in 1–2 sentences.\n- Clearly describe what problem(s) we will solve for them.\n- Propose an approach or implementation plan: describe the main phases or key steps (for example: audit, design, implementation, testing, handover).\n- Suggest a realistic budget range that is consistent with the lead's budget field (do not contradict it; you can give a range inside or around their stated budget).\n- Suggest an approximate timeline (for example: number of weeks and phases).\n- End with a clear call to action (for example: propose a call, ask them to confirm scope, or ask them to answer 1–2 final questions).\n- Do NOT include an email subject, only the body text.\n\nGENERAL RULES (for both modes):\n\n- Write in a natural, professional, friendly tone.\n- Do NOT use Markdown or bullet characters. If you need structure, use short paragraphs and clear sentences.\n- Output only the email body text, no subject line, no additional commentary.\n",
+        "options": {
+          "systemMessage": "You are an account manager and solution consultant at an automation agency (n8n, CRM, AI, integrations).\nYou write clear, concise, professional emails to clients.\nYou adapt the email content based on the current task (first outreach or commercial proposal).\nAlways output plain email text only (no Markdown, no bullet syntax like \"-\" or \"*\", just normal paragraphs).\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        464,
+        0
+      ],
+      "id": "2299896b-6b68-4a3b-b1e9-e314f9253372",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        400,
+        208
+      ],
+      "id": "fcabc978-e33d-4667-ace7-68855e2f6494",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "db6vgMgm8RK5PYsw",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.contactVid || $json.lead.email }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        560,
+        208
+      ],
+      "id": "af101ada-db05-491c-a271-09fdc0a57d72",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n  \"mode\": \"first_email\",\n  \"lead\": {\n    \"email\": \"client@example.com\",\n    \"priority\": \"high\"\n  },\n  \"contactVid\": \"123456\",\n  \"dealId\": \"78910\",\n  \"priority\": \"high\",\n  \"clientReply\": \"\"\n}\n"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "aa08e506-dd6c-4225-97b1-d81ef9b70ee6",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ec66495d-b57d-46e0-a1a0-4083912e5865",
+              "name": "mode",
+              "value": "={{ $json.mode }}",
+              "type": "string"
+            },
+            {
+              "id": "2d35de25-8388-44ba-9814-20ae3c3952a9",
+              "name": "lead",
+              "value": "={{ $json.lead }}",
+              "type": "object"
+            },
+            {
+              "id": "7122e1aa-8a3e-484e-979c-c7ec8fd0d7eb",
+              "name": "priority",
+              "value": "={{ $json.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "4d0a237a-e19f-47d4-ade3-b260812a58bb",
+              "name": "contactVid",
+              "value": "={{ $json.contactVid }}",
+              "type": "string"
+            },
+            {
+              "id": "6639d19a-f1ac-49ff-b8e2-93e23cd3bc2b",
+              "name": "dealId",
+              "value": "={{ $json.dealId }}",
+              "type": "string"
+            },
+            {
+              "id": "8f5e7986-4ad1-44f2-b516-3a2a96e54300",
+              "name": "clientReply",
+              "value": "={{ $json.clientReply || '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "ce3f94a5-4732-4019-81d1-7f10130e73b3",
+      "name": "Set : normalize"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.toEmail || $json.lead.email }}",
+        "subject": "={{ $json.subject }}",
+        "message": "={{ $json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "0c19fd16-ed80-4133-a8c0-6b0ea20bcad9",
+      "name": "Send a message",
+      "webhookId": "0eb975b4-3500-4b2a-8761-8839e28f82f9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "EW3eFnmaPa8tWJSJ",
+          "name": "GoogleAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ca785799-a09a-478b-958f-47c2ff03dedd",
+              "name": "=body",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "c2465a5f-e059-40d9-a35b-fcbb7848d38f",
+              "name": "=subject",
+              "value": "={{    $json.mode === 'first_email'     ? (         $json.priority === 'high'           ? 'Thanks for your request — we will reply within 2 hours'           : 'Thanks for your request — we will reply within 1 business day'       )     : 'Commercial proposal for your automation request' }}",
+              "type": "string"
+            },
+            {
+              "id": "6d3b43ae-24a5-46f8-b419-48c8a96af8c3",
+              "name": "=toEmail",
+              "value": "={{ $node[\"Set : normalize\"].json.lead.email }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        0
+      ],
+      "id": "964a5d75-123f-4646-887c-28dd62856f55",
+      "name": "Set : edit fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Set : edit fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set : normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set : normalize": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set : edit fields": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fa8bdb18-a41f-41b2-994e-bccacb9ab728",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "43ecdc1b526655813aa158d8f77ee0948c0e20b91a4fab5bcf34e0a430aaea59"
+  },
+  "id": "ax4HIrZ9NgddO8Mx",
+  "tags": []
+}
